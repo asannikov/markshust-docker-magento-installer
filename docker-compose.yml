@@ -1,0 +1,78 @@
+# Mark Shust's Docker Configuration for Magento
+# (https://github.com/markshust/docker-magento)
+#
+# Version 39.0.2
+
+version: "3"
+
+services:
+  app:
+    image: markoshust/magento-nginx:1.18-4
+    ports:
+      - "80:8000"
+      - "443:8443"
+    links:
+      - db
+      - phpfpm
+    volumes: &appvolumes
+      - ~/.composer:/var/www/.composer:delegated
+      - appdata:/var/www/html
+      - sockdata:/sock
+      - ssldata:/etc/nginx/certs
+
+  phpfpm:
+    image: markoshust/magento-php:7.4-fpm-8
+    links:
+      - db
+    volumes: *appvolumes
+
+  db:
+    image: percona:5.7
+    command: --max_allowed_packet=64M
+    ports:
+      - "3306:3306"
+    env_file: env/db.env
+    volumes:
+      - dbdata:/var/lib/mysql
+
+  redis:
+    image: redis:5.0-alpine
+
+  elasticsearch:
+    image: markoshust/magento-elasticsearch:7.9.3-0
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    environment:
+      - "discovery.type=single-node"
+      # Set custom heap size to avoid memory errors
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+      # Avoid test failures due to small disks
+      # More info at https://github.com/markshust/docker-magento/issues/488
+      - "cluster.routing.allocation.disk.threshold_enabled=false"
+      - "index.blocks.read_only_allow_delete"
+
+  rabbitmq:
+    image: rabbitmq:3.8.22-management-alpine
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    volumes:
+      - rabbitmqdata:/var/lib/rabbitmq
+
+  ## Disabling cron by default as it uses higher CPU, enable if needed
+  cron:
+    image: markoshust/magento-php:7.4-fpm-8
+    user: root
+    command: /usr/local/bin/cronstart
+    tty: true
+    links:
+      - db
+    volumes: *appvolumes
+
+volumes:
+  appdata:
+  dbdata:
+  rabbitmqdata:
+  sockdata:
+  ssldata:
