@@ -1,0 +1,66 @@
+#!/bin/bash
+
+S=$(bin/cli cat /usr/local/etc/php/php.ini | grep -iGc 'xdebug.mode = off');
+P=$(bin/cli cat /usr/local/etc/php/php.ini | grep -iGc 'xdebug.mode = profile');
+
+xdebug_status() {
+    if [[ $P == 1 ]]; then
+        echo "Xdebug profile mode is enaled."
+    elif [[ $S == 1 ]]; then
+        echo "Xdebug is disabled."
+    else
+        echo "Xdebug is enabled."
+    fi
+}
+
+xdebug_toggle() {
+    if [[ $P == 1 ]]; then
+        profile_enable
+    else
+        xdebug_disable
+    fi
+}
+
+xdebug_disable() {
+    if [[ $S == 0 ]]; then
+        bin/root sed -i -e 's/\(^xdebug.mode = \).*/xdebug.mode = off/g' /usr/local/etc/php/php.ini
+        # bin/root sed -i '/xdebug.log = .*/d' /usr/local/etc/php/php.ini
+        bin/root sed -i '/xdebug.output_dir = .*/d' /usr/local/etc/php/php.ini
+        bin/root sed -i '/xdebug.log_level = .*/d' /usr/local/etc/php/php.ini
+        sleep 1
+        bin/restart phpfpm
+        echo "Xdebug debug mode has been disabled."
+    else
+        echo "Xdebug debug mode is already disabled."
+    fi
+}
+
+profile_enable() {
+    if [[ $P == 1 ]]; then
+        echo "Xdebug profile mode is already enabled."
+    else
+        bin/root sed -i -e 's/\(^xdebug.mode = \).*/xdebug.mode = profile/g' /usr/local/etc/php/php.ini
+        bin/cli mkdir -p /var/www/html/var/log/xdebug
+        bin/fixowns var/log/xdebug
+        # bin/root bash -c "echo 'xdebug.log = /var/www/html/var/log/xdebug' >> /usr/local/etc/php/php.ini"
+        bin/root bash -c "echo 'xdebug.output_dir = /var/www/html/var/log/xdebug' >> /usr/local/etc/php/php.ini"
+        bin/root bash -c "echo 'xdebug.log_level = 7' >> /usr/local/etc/php/php.ini"
+        sleep 1
+        bin/restart phpfpm
+        echo "Xdebug profile mode has been enabled."
+    fi
+}
+
+firstArgLetter="$(echo "$1" | head -c 1)"
+
+if [[ $firstArgLetter == "d" ]]; then
+    xdebug_disable
+elif [[ $firstArgLetter == "t" ]]; then
+    xdebug_toggle
+elif [[ $firstArgLetter == "s" ]]; then
+    xdebug_status
+elif [[ $firstArgLetter == "p" ]]; then
+    profile_enable
+else
+    printf "Please specify either 'disable', 'profile', 'status' or 'toggle' as an argument.\nEx: bin/xdebug-profile status\n"
+fi
