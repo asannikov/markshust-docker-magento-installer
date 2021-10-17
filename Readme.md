@@ -32,6 +32,7 @@ NOTE: you have to disable it using bin/xdebug-profile, not by bin/xdebug! Otherw
 
 - fixed problem with id_rsa key on start.
 
+- selenium works out of box
 
 ## How to use xdebug in CLI
 
@@ -40,3 +41,9 @@ NOTE: you have to disable it using bin/xdebug-profile, not by bin/xdebug! Otherw
 do not forget to replace "your.domain"!
 
 more info here: https://www.jetbrains.com/help/phpstorm/debugging-a-php-cli-script.html
+
+## How to test selenium
+
+Do every single step from Mark Shust's readme but run only `bin/mftf run:test AdminLoginSuccessfulTest` instead of `bin/mftf run:test AdminLoginTest`.
+
+Use vnc://127.0.0.1:5900 in finder to connect to selenium. Password is `secret`.

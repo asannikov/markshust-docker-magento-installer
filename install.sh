@@ -20,15 +20,25 @@ curl -s https://raw.githubusercontent.com/markshust/docker-magento/master/lib/te
 
 # Download custom xdebug profile management
 cd bin && { curl -O https://raw.githubusercontent.com/asannikov/markshust-docker-magento-installer/main/bin/xdebug-profile ; cd -; }
-cd bin && { curl -O https://raw.githubusercontent.com/asannikov/markshust-docker-magento-installer/main/bin/start ; cd -; }
-
-curl -O https://raw.githubusercontent.com/asannikov/markshust-docker-magento-installer/main/docker-compose.dev.yml ;
 curl -O https://raw.githubusercontent.com/asannikov/markshust-docker-magento-installer/main/docker-compose.yml ;
 curl -O https://raw.githubusercontent.com/asannikov/markshust-docker-magento-installer/main/nginx.conf;
 
-sed -i -e "s/example.domain/$1/g" ./docker-compose.dev.yml
+IP=$(docker run --rm alpine ip route | awk 'NR==1 {print $3}')
+sed -i -e "s/example.domain:IP/example.domain:$IP/g" ./docker-compose.yml
+sed -i -e "s/example.domain/$1/g" ./docker-compose.yml
+
+rm docker-compose.yml-e
+
+sed -i -e "s/cached/delegated/g" ./docker-compose.dev.yml
+sed -i -e "s/id_rsa:delegated/id_rsa:cached/g" ./docker-compose.dev.yml
+sed -i -e "s/#- ~\/.ssh/- ~\/.ssh/g" ./docker-compose.dev.yml
+sed -i -e "s/nginx.conf.sample/nginx.conf/g" ./docker-compose.dev.yml
 
 rm docker-compose.dev.yml-e
+
+sed -i -e "s/src\"/src ~\/.ssh\/id_rsa\"/g" ./bin/start
+
+rm ./bin/start-e
 
 # Replace with existing source code of your existing Magento instance:
 mkdir tmp
@@ -52,19 +62,12 @@ if [[ -f "$AUTH_FILE" ]]; then
     cp "$AUTH_FILE" src/auth.json
 fi
 
-echo "Create a DNS host entry for the site:"
-echo "127.0.0.1 ::1 $1" | sudo tee -a /etc/hosts
-
 # Start some containers, copy files to them and then restart the containers:
 docker-compose -f docker-compose.yml up -d
 bin/copytocontainer --all ## Initial copy will take a few minutes...
 
 echo "Import existing database:"
 bin/mysql < "$3"
-
-# Update database connection details to use the above Docker MySQL credentials:
-# Also note: creds for the MySQL server are defined at startup from env/db.env
-# vi src/app/etc/env.php
 
 bin/restart
 
@@ -73,17 +76,13 @@ bin/composer install -v
 # Import app-specific environment settings:
 bin/magento app:config:import
 
-# Set base URLs to local environment URL (if not defined in env.php file):
-bin/magento config:set web/secure/base_url https://"$1"/
-bin/magento config:set web/unsecure/base_url https://"$1"/
+bin/setup-domain $1
+
 bin/magento config:set catalog/search/elasticsearch7_server_hostname elasticsearch
 bin/magento config:set catalog/search/elasticsearch7_server_port 9200
 bin/magento cache:c
 
 bin/magento indexer:reindex
 bin/magento setup:upgrade
-
-# waiting until elasticseatch run
-sleep 90
 
 open https://"$1"
