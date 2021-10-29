@@ -16,7 +16,7 @@ if [ -z "$3" ]; then
 fi
 
 # Download the Docker Compose template:
-curl -s https://raw.githubusercontent.com/markshust/docker-magento/40.0.4/lib/template | bash
+curl -s https://raw.githubusercontent.com/markshust/docker-magento/41.0.0/lib/template | bash
 
 # Download custom xdebug profile management
 cd bin && { curl -O https://raw.githubusercontent.com/asannikov/markshust-docker-magento-installer/main/bin/xdebug-profile ; cd -; }
@@ -90,6 +90,8 @@ bin/magento cache:c
 
 bin/magento indexer:reindex
 bin/magento setup:upgrade
+bin/fixowns .
+bin/magento cron:install
 
 # echo 'Preparing test database'
 # bin/n98-magerun2 db:dump --strip="@development" dump.sql
