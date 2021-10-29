@@ -1,7 +1,7 @@
 ## Mark Shust's Docker Configuration for Magento
 ## (https://github.com/markshust/docker-magento)
 ##
-## Version 40.0.0
+## Version 40.0.2
 
 ## To use SSH, see https://github.com/markshust/docker-magento#ssh
 ## Linux users, see https://github.com/markshust/docker-magento#linux
@@ -19,6 +19,8 @@ services:
       - phpfpm
     volumes: &appvolumes
       - ~/.composer:/var/www/.composer:cached
+      - ~/.ssh/id_rsa:/var/www/.ssh/id_rsa:cached
+      - ~/.ssh/known_hosts:/var/www/.ssh/known_hosts:cached
       - appdata:/var/www/html
       - sockdata:/sock
       - ssldata:/etc/nginx/certs
@@ -28,10 +30,15 @@ services:
     links:
       - db
     volumes: *appvolumes
+    ## extra_hosts is required for selenium
+    ## For extra_hosts, replace "magento.test" with the URL of your site,
+    ## and also replace 172.17.0.1 with the result of:
+    ## docker run --rm alpine ip route | awk 'NR==1 {print $3}'
     extra_hosts:
       - "example.domain:IP"
     environment:
       PHP_IDE_CONFIG: "serverName=example.domain"
+
 
   db:
     image: mariadb:10.4

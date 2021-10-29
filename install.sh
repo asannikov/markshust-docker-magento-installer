@@ -16,10 +16,11 @@ if [ -z "$3" ]; then
 fi
 
 # Download the Docker Compose template:
-curl -s https://raw.githubusercontent.com/markshust/docker-magento/master/lib/template | bash
+curl -s https://raw.githubusercontent.com/markshust/docker-magento/40.0.4/lib/template | bash
 
 # Download custom xdebug profile management
 cd bin && { curl -O https://raw.githubusercontent.com/asannikov/markshust-docker-magento-installer/main/bin/xdebug-profile ; cd -; }
+cd bin && { curl -O https://raw.githubusercontent.com/asannikov/markshust-docker-magento-installer/main/bin/mysql_test ; cd -; }
 curl -O https://raw.githubusercontent.com/asannikov/markshust-docker-magento-installer/main/docker-compose.yml ;
 curl -O https://raw.githubusercontent.com/asannikov/markshust-docker-magento-installer/main/nginx.conf;
 
@@ -31,7 +32,6 @@ rm docker-compose.yml-e
 
 sed -i -e "s/cached/delegated/g" ./docker-compose.dev.yml
 sed -i -e "s/id_rsa:delegated/id_rsa:cached/g" ./docker-compose.dev.yml
-sed -i -e "s/#- ~\/.ssh/- ~\/.ssh/g" ./docker-compose.dev.yml
 sed -i -e "s/nginx.conf.sample/nginx.conf/g" ./docker-compose.dev.yml
 
 rm docker-compose.dev.yml-e
@@ -71,6 +71,12 @@ bin/mysql < "$3"
 
 bin/restart
 
+bin/root mysql -hdb -uroot -pmagento -e 'CREATE DATABASE magento_test;'
+bin/root mysql -hdb -uroot -pmagento -e 'GRANT ALL PRIVILEGES ON `magento_test`.* TO "magento"@"%";'
+bin/root mysql -hdb -uroot -pmagento -e 'GRANT ALL ON `magento_test`.* TO "magento"@"%";'
+bin/root mysql -hdb -uroot -pmagento -e 'GRANT SELECT ON `magento_test`.* TO "magento"@"%";'
+bin/root mysql -hdb -uroot -pmagento -e 'FLUSH PRIVILEGES ;'
+
 bin/composer install -v
 
 # Import app-specific environment settings:
@@ -84,5 +90,11 @@ bin/magento cache:c
 
 bin/magento indexer:reindex
 bin/magento setup:upgrade
+
+# echo 'Preparing test database'
+# bin/n98-magerun2 db:dump --strip="@development" dump.sql
+# bin/copyfromcontainer dump.sql
+# bin/mysql_test < src/dump.sql
+# bin/cli rm dump.sql
 
 open https://"$1"
