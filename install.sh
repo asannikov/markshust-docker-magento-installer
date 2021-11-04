@@ -86,12 +86,21 @@ bin/setup-domain $1
 
 bin/magento config:set catalog/search/elasticsearch7_server_hostname elasticsearch
 bin/magento config:set catalog/search/elasticsearch7_server_port 9200
+bin/magento config:set smtp/general/enabled 1
+bin/magento config:set smtp/module/active 1
+bin/magento config:set smtp/configuration_option/password null
+bin/magento config:set smtp/configuration_option/username null
+bin/magento config:set smtp/configuration_option/authentication smtp
+bin/magento config:set smtp/configuration_option/port 1025
+bin/magento config:set smtp/configuration_option/host mailcatcher
+
 bin/magento cache:c
 
 bin/magento indexer:reindex
 bin/magento setup:upgrade
 bin/fixowns .
 bin/magento cron:install
+bin/cron start
 
 # echo 'Preparing test database'
 # bin/n98-magerun2 db:dump --strip="@development" dump.sql
