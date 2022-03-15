@@ -15,8 +15,13 @@ if [ -z "$3" ]; then
     exit 1
 fi
 
+COMPOSER_VERSION=2
+if [ $4 == "composer1" ];then
+    COMPOSER_VERSION=1;
+fi
+
 # Download the Docker Compose template:
-curl -s https://raw.githubusercontent.com/markshust/docker-magento/41.0.0/lib/template | bash
+curl -s https://raw.githubusercontent.com/markshust/docker-magento/41.0.2/lib/template | bash
 
 # Download custom xdebug profile management
 cd bin && { curl -O https://raw.githubusercontent.com/asannikov/markshust-docker-magento-installer/main/bin/xdebug-profile ; cd -; }
@@ -77,6 +82,10 @@ bin/root mysql -hdb -uroot -pmagento -e 'GRANT ALL ON `magento_test`.* TO "magen
 bin/root mysql -hdb -uroot -pmagento -e 'GRANT SELECT ON `magento_test`.* TO "magento"@"%";'
 bin/root mysql -hdb -uroot -pmagento -e 'FLUSH PRIVILEGES ;'
 
+if [[ $COMPOSER_VERSION -eq 1 ]];then
+    bin/root composer self-update --1
+fi
+
 bin/composer install -v
 
 # Import app-specific environment settings:
@@ -99,8 +108,8 @@ bin/magento cache:c
 bin/magento indexer:reindex
 bin/magento setup:upgrade
 bin/fixowns .
+bin/cron stop
 bin/magento cron:install
-bin/cron start
 
 # echo 'Preparing test database'
 # bin/n98-magerun2 db:dump --strip="@development" dump.sql

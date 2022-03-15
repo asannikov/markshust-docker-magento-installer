@@ -17,7 +17,7 @@ Or you can modify install.sh script depending on your purpose.
 
 4. Download script into the root folder: `curl -O https://raw.githubusercontent.com/asannikov/markshust-docker-magento-installer/main/install.sh`
 
-5. Replace the command parameters and run it `sh install.sh magento2.dev http://path.to.git.repo path/to/dump/magento.sql`
+5. Replace the command parameters and run it `sh install.sh magento2.dev http://path.to.git.repo path/to/dump/magento.sql` or `sh install.sh magento2.dev http://path.to.git.repo path/to/dump/magento.sql composer1` if you want to switch composer version.
 
 ## Extra features
 - optimized for working on Mac OS!
