@@ -3,6 +3,7 @@
 POSITIONAL_ARGS=()
 
 COMPOSER=2
+PHP="8.1-fpm-0"
 while [[ $# -gt 0 ]]; do
   case $1 in
     -db|--dbdump)
@@ -52,7 +53,8 @@ done
 set -- "${POSITIONAL_ARGS[@]}" # restore positional parameters
 
 if [[ "${HELP}" ]]; then
-    echo "usage: install.sh [--domain <domain>| -d <domain>] [--repository <repository>| -r <repository>] [--composer <1|2>| -c <1|2>] [--php <8.1-fpm-0|7.4-fpm-6|7.3-fpm-13|7.2-fpm-9|7.1-fpm-13>| -p <version>] [--help]"
+    echo "usage: install.sh [--domain <domain>| -d <domain>] [--repository <repository>| -r <repository>] [--composer <1|2>| -c <1|2>] [--php <8.1-fpm-0|7.4-fpm-6|7.3-fpm-13|7.2-fpm-9|7.1-fpm-13>| -p <version>] [--help]\n"
+    echo "Defualt php: 8.1-fpm-0, default coposer: 2"
     exit 1
 fi
 
@@ -61,7 +63,7 @@ echo "Repository  = ${REPOSITORY}"
 echo "Domain      = ${DOMAIN}"
 echo "Composer    = ${COMPOSER}"
 echo "Php         = ${PHP}"
-echo "DEFAULT     = ${DEFAULT}"
+# echo "DEFAULT     = ${DEFAULT}"
 
 if [ -z "${DOMAIN}" ]; then
     echo 'Define domain without http, ie. magento.dev'
@@ -95,7 +97,7 @@ curl -O https://raw.githubusercontent.com/asannikov/markshust-docker-magento-ins
 IP=$(docker run --rm alpine ip route | awk 'NR==1 {print $3}')
 
 sed -i -e "s/example.domain:IP/example.domain:$IP/g" ./docker-compose.yml
-sed -i -e "s/example.domain/$1/g" ./docker-compose.yml
+sed -i -e "s/example.domain/${DOMAIN}/g" ./docker-compose.yml
 sed -i -e "s/8.1-fpm-0/${PHP}/g" ./docker-compose.yml
 
 rm docker-compose.yml-e
@@ -112,7 +114,7 @@ rm ./bin/start-e
 
 # Replace with existing source code of your existing Magento instance:
 mkdir tmp
-git clone "$2" ./tmp
+git clone "${REPOSITORY}" ./tmp
 mv ./tmp src
 mv nginx.conf src
 
@@ -156,7 +158,7 @@ bin/composer install -v
 # Import app-specific environment settings:
 bin/magento app:config:import
 
-bin/setup-domain $1
+bin/setup-domain ${DOMAIN}
 
 bin/magento config:set catalog/search/elasticsearch7_server_hostname elasticsearch
 bin/magento config:set catalog/search/elasticsearch7_server_port 9200
@@ -182,4 +184,4 @@ bin/magento cron:install
 # bin/mysql_test < src/dump.sql
 # bin/cli rm dump.sql
 
-open https://"$1"
+open https://"${DOMAIN}"
