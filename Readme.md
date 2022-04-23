@@ -11,16 +11,24 @@ Or you can modify install.sh script depending on your purpose.
 
 1. Put auth.json file into the root path where you are going to run install.sh.
 
-2. (Optional) You can put your env.php file into the root folder either. Otherwies, default env.php will be used. Do not forgen to copy the mysql data from default env.php.
+2. (Optional) You can put your env.php file into the root folder either. Otherwise, default env.php will be used. Do not forget to copy the mysql data from default env.php.
 
 3. Be sure that ~/.ssh/id_rsa exists
 
 4. Download script into the root folder: `curl -O https://raw.githubusercontent.com/asannikov/markshust-docker-magento-installer/main/install.sh`
 
-5. Replace the command parameters and run it `sh install.sh magento2.dev http://path.to.git.repo path/to/dump/magento.sql` or `sh install.sh magento2.dev http://path.to.git.repo path/to/dump/magento.sql composer1` if you want to switch composer version.
+5. Find usage info by running `sh install.sh --help`.
+
+
+Used parameters:
+- `-d` sets domain name
+- `-r` sets repository path
+- `-db` sets path to db dump file
+- `-c` sets composer version. 2 - by default
+- `-p` sets php version. 8.1-fpm-0 - by default. (8.1-fpm-0 | 7.4-fpm-6 | 7.3-fpm-13 | 7.2-fpm-9 | 7.1-fpm-13)
 
 ## Extra features
-- optimized for working on Mac OS!
+- optimized for working on MacOS!
 
 - it prepares elasticsearch and DB configuration
 
