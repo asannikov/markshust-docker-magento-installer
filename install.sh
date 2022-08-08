@@ -53,8 +53,8 @@ done
 set -- "${POSITIONAL_ARGS[@]}" # restore positional parameters
 
 if [[ "${HELP}" ]]; then
-    echo "usage: install.sh [--domain <domain>| -d <domain>] [--repository <repository>| -r <repository>] [--composer <1|2>| -c <1|2>] [--php <8.1-fpm-0|7.4-fpm-6|7.3-fpm-13|7.2-fpm-9|7.1-fpm-13>| -p <version>] [--help]\n"
-    echo "Defualt php: 8.1-fpm-0, default coposer: 2"
+    echo "usage: install.sh [--domain <domain>| -d <domain>] [--repository <repository>| -r <repository>] [--dbdump <pathToDbFile.sql>| -db <pathToDbFile.sql>] [--composer <1|2>| -c <1|2>] [--php <8.1-fpm-0|7.4-fpm-6|7.3-fpm-13|7.2-fpm-9|7.1-fpm-13>| -p <version>] [--help]\n"
+    echo "Defualt php: 8.1-fpm-0, default composer: 2"
     exit 1
 fi
 
@@ -139,7 +139,7 @@ docker-compose -f docker-compose.yml up -d
 bin/copytocontainer --all ## Initial copy will take a few minutes...
 
 echo "Import existing database:"
-bin/mysql < "$3"
+bin/mysql < "${DBDUMP}"
 
 bin/restart
 
