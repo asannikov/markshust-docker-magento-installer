@@ -107,6 +107,7 @@ sed -i -e "s/id_rsa:delegated/id_rsa:cached/g" ./docker-compose.dev.yml
 sed -i -e "s/nginx.conf.sample/nginx.conf/g" ./docker-compose.dev.yml
 sed -i -e "s/- .\/src\/grunt-config.json.sample/# - .\/src\/grunt-config.json.sample/g" ./docker-compose.dev.yml
 sed -i -e "s/- .\/src\/Gruntfile.js.sample/# - .\/src\/Gruntfile.js.sample/g" ./docker-compose.dev.yml
+sed -i -e "s/- .\/src\/package.json.sample/# - .\/src\/package.json.sample/g" ./docker-compose.dev.yml
 
 rm docker-compose.dev.yml-e
 
