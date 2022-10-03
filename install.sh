@@ -16,6 +16,11 @@ while [[ $# -gt 0 ]]; do
       shift # past argument
       shift # past value
       ;;
+    -b|--branch)
+      BRANCH="$2"
+      shift # past argument
+      shift # past value
+      ;;
     -d|--domain)
       DOMAIN="$2"
       shift # past argument
@@ -60,6 +65,7 @@ fi
 
 echo "DB Dump     = ${DBDUMP}"
 echo "Repository  = ${REPOSITORY}"
+echo "Branch      = ${BRANCH}"
 echo "Domain      = ${DOMAIN}"
 echo "Composer    = ${COMPOSER}"
 echo "Php         = ${PHP}"
@@ -117,7 +123,11 @@ rm ./bin/start-e
 
 # Replace with existing source code of your existing Magento instance:
 mkdir tmp
-git clone "${REPOSITORY}" ./tmp
+if [ -z "${BRANCH}" ]; then
+  git clone "${REPOSITORY}" ./tmp
+else
+  git clone --single-branch --branch "${BRANCH}" "${REPOSITORY}" ./tmp
+fi
 mv ./tmp src
 mv nginx.conf src
 
@@ -172,6 +182,7 @@ bin/magento config:set smtp/configuration_option/username null
 bin/magento config:set smtp/configuration_option/authentication smtp
 bin/magento config:set smtp/configuration_option/port 1025
 bin/magento config:set smtp/configuration_option/host mailcatcher
+bin/magento config:set web/cookie/cookie_domain ${DOMAIN}
 
 bin/magento cache:c
 

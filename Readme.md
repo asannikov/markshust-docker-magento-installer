@@ -23,6 +23,7 @@ Or you can modify install.sh script depending on your purpose.
 Used parameters:
 - `-d` sets domain name
 - `-r` sets repository path
+- `-b` sets repository branch
 - `-db` sets path to db dump file
 - `-c` sets composer version. 2 - by default
 - `-p` sets php version. 8.1-fpm-0 - by default. (8.1-fpm-0 | 7.4-fpm-6 | 7.3-fpm-13 | 7.2-fpm-9 | 7.1-fpm-13)
