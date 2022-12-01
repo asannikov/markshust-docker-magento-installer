@@ -3,7 +3,7 @@
 POSITIONAL_ARGS=()
 
 COMPOSER=2
-PHP="8.1-fpm-0"
+PHP="8.1-fpm-1"
 while [[ $# -gt 0 ]]; do
   case $1 in
     -db|--dbdump)
@@ -59,7 +59,7 @@ set -- "${POSITIONAL_ARGS[@]}" # restore positional parameters
 
 if [[ "${HELP}" ]]; then
     echo "usage: install.sh [--domain <domain>| -d <domain>] [--repository <repository>| -r <repository>] [--dbdump <pathToDbFile.sql>| -db <pathToDbFile.sql>] [--composer <1|2>| -c <1|2>] [--php <8.1-fpm-0|7.4-fpm-6|7.3-fpm-13|7.2-fpm-9|7.1-fpm-13>| -p <version>] [--help]\n"
-    echo "Defualt php: 8.1-fpm-0, default composer: 2"
+    echo "Default php: 8.1-fpm-1, default composer: 2"
     exit 1
 fi
 
@@ -92,30 +92,29 @@ if (( ${COMPOSER} == 1 ||  ${COMPOSER} == 2 )); then
 fi
 
 # Download the Docker Compose template:
-curl -s https://raw.githubusercontent.com/markshust/docker-magento/42.0.0/lib/template | bash
+curl -s https://raw.githubusercontent.com/markshust/docker-magento/43.2.0/lib/template | bash
 
 # Download custom xdebug profile management
 cd bin && { curl -O https://raw.githubusercontent.com/asannikov/markshust-docker-magento-installer/main/bin/xdebug-profile ; cd -; }
 cd bin && { curl -O https://raw.githubusercontent.com/asannikov/markshust-docker-magento-installer/main/bin/mysql_test ; cd -; }
-curl -O https://raw.githubusercontent.com/asannikov/markshust-docker-magento-installer/main/docker-compose.yml ;
+curl -O https://raw.githubusercontent.com/asannikov/markshust-docker-magento-installer/main/compose.yaml ;
 curl -O https://raw.githubusercontent.com/asannikov/markshust-docker-magento-installer/main/nginx.conf;
 
 IP=$(docker run --rm alpine ip route | awk 'NR==1 {print $3}')
 
-sed -i -e "s/example.domain:IP/example.domain:$IP/g" ./docker-compose.yml
-sed -i -e "s/example.domain/${DOMAIN}/g" ./docker-compose.yml
-sed -i -e "s/8.1-fpm-0/${PHP}/g" ./docker-compose.yml
+sed -i -e "s/magento.test/${DOMAIN}/g" ./compose.yaml
+sed -i -e "s/8.1-fpm-1/${PHP}/g" ./compose.yaml
 
-rm docker-compose.yml-e
+rm compose.yaml-e
 
-sed -i -e "s/cached/delegated/g" ./docker-compose.dev.yml
-sed -i -e "s/id_rsa:delegated/id_rsa:cached/g" ./docker-compose.dev.yml
-sed -i -e "s/nginx.conf.sample/nginx.conf/g" ./docker-compose.dev.yml
-sed -i -e "s/- .\/src\/grunt-config.json.sample/# - .\/src\/grunt-config.json.sample/g" ./docker-compose.dev.yml
-sed -i -e "s/- .\/src\/Gruntfile.js.sample/# - .\/src\/Gruntfile.js.sample/g" ./docker-compose.dev.yml
-sed -i -e "s/- .\/src\/package.json.sample/# - .\/src\/package.json.sample/g" ./docker-compose.dev.yml
+sed -i -e "s/cached/delegated/g" ./compose.dev.yaml
+sed -i -e "s/id_rsa:delegated/id_rsa:cached/g" ./compose.dev.yaml
+sed -i -e "s/nginx.conf.sample/nginx.conf/g" ./compose.dev.yaml
+sed -i -e "s/- .\/src\/grunt-config.json.sample/# - .\/src\/grunt-config.json.sample/g" ./compose.dev.yaml
+sed -i -e "s/- .\/src\/Gruntfile.js.sample/# - .\/src\/Gruntfile.js.sample/g" ./compose.dev.yaml
+sed -i -e "s/- .\/src\/package.json.sample/# - .\/src\/package.json.sample/g" ./compose.dev.yaml
 
-rm docker-compose.dev.yml-e
+rm compose.dev.yaml-e
 
 sed -i -e "s/src\"/src ~\/.ssh\/id_rsa\"/g" ./bin/start
 
@@ -148,7 +147,7 @@ if [[ -f "$AUTH_FILE" ]]; then
 fi
 
 # Start some containers, copy files to them and then restart the containers:
-docker-compose -f docker-compose.yml up -d
+docker-compose -f compose.yaml up -d
 bin/copytocontainer --all ## Initial copy will take a few minutes...
 
 echo "Import existing database:"
