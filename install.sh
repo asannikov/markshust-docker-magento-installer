@@ -92,7 +92,7 @@ if (( ${COMPOSER} == 1 ||  ${COMPOSER} == 2 )); then
 fi
 
 # Download the Docker Compose template:
-curl -s https://raw.githubusercontent.com/markshust/docker-magento/43.2.0/lib/template | bash
+curl -s https://raw.githubusercontent.com/markshust/docker-magento/44.0.0/lib/template | bash
 
 # Download custom xdebug profile management
 cd bin && { curl -O https://raw.githubusercontent.com/asannikov/markshust-docker-magento-installer/main/bin/xdebug-profile ; cd -; }
